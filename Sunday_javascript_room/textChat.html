@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>テキストチャット</title>
+<script>
+var peer = null;    //peerコネクション
+var channel = null  //データチャンネル
+var filename;       //「offer.txt」または「answer.txt」
+
+function init(){
+  //ボタンを無効化
+  document.getElementById("sendButton").disabled = true;
+  document.getElementById("stopButton").disabled = true;
+}
+
+function createPeer(){
+  //peerコネクションの作成
+  peer = new RTCPeerConnection();
+
+  //通信経路の候補の収集後にSDPを生成
+  peer.onicecandidate = function(e){
+    if (e.candidate == null){
+      //生成したSDP(OfferまたはAnswer)を保存
+      saveSDP(JSON.Stringify(peer.localDescription));
+    }
+  };
+
+  //データチャンネルを作成
+  channel = peer.createDataChannel("chat");
+
+  //データチャンネルを取得したときの処理
+  peer.ondatachannel = function(e){
+    //接続、送信ボタンを有効化
+    e.channel.onopen = function(e){
+      log("接続しました。");
+      document.getElementById("sendButton").disabled = false;
+    }
+    // リモートのチャットを受信+表示
+    e.channel.onmessage = function(e){
+      addChat(e.date,true);
+    }
+  }
+
+  //切断ボタンを有効化
+  document.getElementById("stopButton").disabled = false;
+}
+
+function send(){
+  //チャットを送信
+  var name = document.getElementById("name").value;
+  var message = document.getElementById("message").value;
+  var chat = "[" + name + "]" + message;
+  channel.send(chat);
+  //ローカルのチャットを表示
+  addChat(chat,false);
+}
+
+
+function addChat(chat,remote){
+  //チャットを追加
+  var chatArea = document.getElementById("chatArea");
+  var newChat = document.createElement("div");
+  newChat.innerText = chat;
+  if (remote) newChat.classList.add("remote");
+  chatArea.appendChild(newChat);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function createOffer(){
+  //peerコネクションの作成
+  createPeer();
+
+  //offer SDPの作成
+  peer.createOffer().than(function(offer){
+    //作成したOfferSDPをローカル接続にセット
+    peer.setLocalDescription(offer);
+    filename = "offer.txt";
+    log("offer SDPを作成しました。");
+  }).catch(function(error){
+    //エラーを表示
+    log("エラー："+error.name);
+  });
+}
+
+function loadSDP(e){
+  //「offer.txt」または「answer.txt」ファイルの読み込み
+  var reader = new FileReader();
+  reader.onload = function(){
+    //読み込んだSDP(OfferまたはAnswer)
+    var sdp = JSON.parse(reader.result);
+
+    //Answer SDPまたはOffer SDPを受け取った処理
+    if (peer){
+      //受け取ったAnswerSDPをリモート接続にセット
+    }
+  }
+}

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>データの並び替え</title>
+<script>
+var csvFile:					//	CSVファイル
+var csvData = new Array();		//	CSVデータ
+var colTitle = new Array();		//	列のタイトル
+var colSort = new Array();		//	列のソート状況(init/asc/desc)
+var sortIndex;					//	ソートしている列のindex
+
+function loadCSV(e) {
+	//	CSVファイルの取得
+	csvFile = e.files[0];
+
+	//	読み込み
+	readData();
+}
+
+function readData(){
+	//	初期化
+	csvData = [];
+	sortIndex = -1;
+
+	//	CSVデータの読み込み
+	var reader = new FileReader();
+
+	//	読み込み完了後の処理
+	reader.onload = function();
+		//	データを2次元配列に格納
+		var rows = reader.result.split("\n");
+		for (i=0; i<rows.length; i++){
+			if (rows[i] != ""){
+				//カンマで分割
+				csvData[i] = rows[i].sprit(",")
+			}
+		}
+
+		//	列タイトル
+		if (document.getElementById("checkTitle").checked) {
+			//	先頭の行を列のタイトルにセット
+			colTitle = csvData[0];
+			//	先頭の行をデータから削除
+			csvData.shift();
+		} else {
+			//	固定のタイトルをセット
+			for(i=0; i<csvData[0].length; i++) {
+				colTitle[i] = "列"+i;
+			}
+		}
+
+		//	ソート状況の初期化
+		csv.Sort.fill("init",0,colTitle.length);
+
+		//	表を表示
+		showTable();
+	};
+
+	//	shift-JISのテキストファイルとして読み込み実行
+	reader.readAsText(csvFile,"shift-JIS");
+}
+
+	function showTable(){
+		//	表の作成
+		var table = document.getElementById("dataTable");
+		table.innerHTML = "";
+		for(i=-1;<csvData.length;i++){
+			//	trの作成
+			var tr = document.getElementById("dataTable");
+			for(j=0; j<csvData[0].length; j++) {
+				//tdの作成
+				var td = document.cleateElement("td");
+				if (i<0){
+					//列のタイトルをボタンで作成
+					var button = doccument.createElement("button");
+					button.id = "col_"+j;
+					button.innerHTML = colTitle[j];
+					//ソートした列に▲▼を追加
+					if ((sortIndex == j)&&(colSort[j] == "asc")){
+						button.innerHTML += "<span>▲</span>";
+					} else if ((sortIndex == j)&&(colSort[j] == "desc")){
+						button.innerHTML += "<span>▼</span>";
+					}
+					button.onclick = sort;
+					//tdに追加
+					td.appendChild(button);
+				} else {
+					//データ
+					td.innerText = csvData[i][j];
+				}
+				//trに追加
+				tr.appendChild(td);
+			}
+			//tableに追加
+			table.appendChild(tr)
+		}
+	}
+
+	function checkNumber(index){
+		//ソートする列のデータが数値かどうかを調べる
+		var check = true;
+		for(i=0; i<csvData.length; i++){
+			if (isNaN(csvData[i][index])){
+				//数値ではない
+				check = false;
+				break;
+			}
+		}
+		return check;
+	}
+
+	function sort(event){
+		//ソートする列のindexを取得
+		sortIndex = event.target.id.split("_")[1];
+
+		//昇順／降順の切り替え
+		if (colSort[sortIndex] == "asc"){
+			colSort[sortIndex] = "desc";
+		} else {
+			colSort[sortIndex] = "asc";
+		}
+
+		//ソート
+		if(checkNumber(sortIndex)){
+			//数値のデータのソート
+			csvData.sort(function(a.b){
+				if (colSort[sortindex]) == "desc"{
+					//降順
+					return b[sortIndex]-a[sortIndex];
+				} else {
+					//昇順
+					return a[sortIndex]-b[sortIndex];
+				}
+			});
+		} else {
+			//文字列のデータのソート
+			csvData.sort(function(a,b){
+				if (colSort[sortIndex] == "desc"){
+					//降順
+					if (b[sortIndex] > a[sortIndex]) {
+						return 1;
+					} else {
+						return -1;
+					}
+				} else {
+					//昇順
+					if (a[sortIndex] > b[sortIndex]){
+						return 1;
+					} else {
+						return -1;
+					}
+				}
+			});
+		}
+
+		//表を再作成
+		showTable();
+	}
+	</script>
+	<style>
+	table {
+		width:100%;
+		border-collapse: collapse;
+	}
+	td {border: 1px solid gray;}
+	button {width: 100%;}
+	button span {
+		color: #336699;
+		font-size: 10px;
+		vertical-align:top;
+	}
+	</style>
+	</head>
+	</body>
+	<p>データの並び替え</p>
+	<hr>
+	<input id"file" type="file" accept=".csv" onchange="loadCSV(this)">
+	<input type="checkbox" id="checkTitle" onchange="readData">
+	先頭の行を列のタイトルにする
+	<hr>
+	<table id="dataTable"></table>
+	</body>
+	</html>

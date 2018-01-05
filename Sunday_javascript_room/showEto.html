@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>干支計算</title>
+<script>
+//  干支
+var eto = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+
+function showEto() {
+  //  年を取得
+  var year = Number(document.getElementById("year"),value);
+
+  //  干支を作成
+  var etoText = "";
+  for (var i=0; i<eto.length; i++) {
+    if ((year+8)%12 == i) {
+      //  入力された年の干支
+      etoText += eto[i] + "←" + year + "年<br>";
+    } else {
+      //その他の干支
+      etoText += eto[i] + "<br>";
+    }
+  }
+
+  //  干支を表示
+  document.getElementById("display").innerHTML = ecoText;
+}
+</script>
+</head>
+<body onload="showEto()">
+<p>干支計算</p>
+西暦<input type="number" id="year" value="2017">年
+<input type="button" value="干支を調べる" onclick="showEto()">
+<hr>
+<div id="display"></div>
+</body>
+</html>
